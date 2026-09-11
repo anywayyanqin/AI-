@@ -1,0 +1,6 @@
+{
+  "name": "智能AI指标生成与回测平台",
+  "description": "基于研报库、产业数据库和市场公开数据的期货智能AI交易指标生成、回测与TradingView导出平台",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
