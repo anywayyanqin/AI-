@@ -143,9 +143,6 @@ export const ChatPanel: React.FC = () => {
             <span className="font-bold text-slate-900 truncate">
               {activeIndicator?.name}
             </span>
-            <span className="text-[11px] text-[#2F6FED] bg-blue-50 font-mono px-1.5 py-0.5 rounded font-medium border border-blue-100 shrink-0">
-              {curVer?.label || 'v1'}
-            </span>
           </div>
         </div>
       </div>

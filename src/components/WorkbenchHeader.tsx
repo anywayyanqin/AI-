@@ -145,12 +145,11 @@ export const WorkbenchHeader: React.FC<WorkbenchHeaderProps> = ({
           <div className="flex items-center text-xs relative group">
             <button
               type="button"
-              onClick={() => activeIndicator.isDirty && store.saveCurrentVersion()}
-              disabled={!activeIndicator.isDirty}
+              onClick={() => store.saveCurrentVersion()}
               title={
                 activeIndicator.isDirty
                   ? `当前有修改未保存 · 上次保存时间: ${curVer?.savedAt || '无'}`
-                  : `上次保存时间: ${curVer?.savedAt || '已是最新'}`
+                  : `上次保存时间: ${curVer?.savedAt || '已是最新'} · 点击可再次保存`
               }
               className={`p-1 rounded transition-colors select-none flex items-center justify-center ${
                 activeIndicator.isDirty
@@ -205,16 +204,15 @@ export const WorkbenchHeader: React.FC<WorkbenchHeaderProps> = ({
 
         {/* Action Buttons */}
         <div className="flex items-center space-x-2">
-          {/* 保存按钮 (Primary, locks version) */}
+          {/* 保存按钮 (Primary, 始终可点击) */}
           <button
             onClick={() => store.saveCurrentVersion()}
-            disabled={!activeIndicator.isDirty}
             className={`px-3 py-1.5 rounded text-xs font-semibold flex items-center space-x-1.5 transition-all cursor-pointer ${
               activeIndicator.isDirty
                 ? 'bg-[#2F6FED] hover:bg-[#2557CA] text-white shadow-2xs'
-                : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700'
             }`}
-            title={activeIndicator.isDirty ? '锁定并保存当前版本' : '当前版本已是最新已存状态'}
+            title={activeIndicator.isDirty ? '锁定并保存当前版本' : '当前版本已保存 · 点击可再次保存'}
           >
             {activeIndicator.isDirty ? (
               <div className="relative w-3.5 h-3.5 flex items-center justify-center shrink-0">
@@ -226,7 +224,7 @@ export const WorkbenchHeader: React.FC<WorkbenchHeaderProps> = ({
                 </div>
               </div>
             ) : (
-              <CloudCheck className="w-3.5 h-3.5 text-slate-400" />
+              <CloudCheck className="w-3.5 h-3.5 text-slate-500" />
             )}
             <span>{activeIndicator.isDirty ? '保存' : '已保存'}</span>
           </button>
@@ -356,7 +354,7 @@ export const WorkbenchHeader: React.FC<WorkbenchHeaderProps> = ({
 
           <div className="flex items-center space-x-1">
             <span className="text-slate-400 font-sans">笔数</span>
-            <span className="font-semibold text-slate-800">{kpi.trades ?? 0} 笔</span>
+            <span className="font-semibold text-slate-800">{kpi.trades ?? 0}</span>
           </div>
         </div>
       </div>
