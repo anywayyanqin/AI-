@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useWorkbenchStore } from '../store/workbenchStore';
 import { getContractName } from '../engine/contractHelper';
-import { Download, Copy, Check, Code2, Table, Calendar, ChevronRight, ChevronUp, ChevronDown, GripHorizontal } from 'lucide-react';
+import { Download, Copy, Check, Code2, Table, Calendar, Crosshair, ChevronRight, ChevronUp, ChevronDown, GripHorizontal } from 'lucide-react';
 
 export const DetailsBottomTabs: React.FC = () => {
   const { state, store, activeIndicator } = useWorkbenchStore();
@@ -108,6 +108,12 @@ export const DetailsBottomTabs: React.FC = () => {
       return { t, seq: i + 1, cumPnl: cumPnlAcc };
     })
     .reverse();
+
+  // 图表定位：锚定到该行 B/S 信号点对应的 K 线，并确保信号图层可见
+  const handleLocateSignal = (date: string) => {
+    if (!state.layerVisibility.signals) store.toggleLayer('signals');
+    store.setFocusedTradeDate(date);
+  };
 
   const handleCopyCode = () => {
     const code = codeType === 'pine' ? curVer?.pineCode || '' : curVer?.pythonCode || '';
@@ -310,13 +316,12 @@ export const DetailsBottomTabs: React.FC = () => {
                   <th className="py-1.5 px-3 text-right">持仓天数</th>
                   <th className="py-1.5 px-3 text-right">手数</th>
                   <th className="py-1.5 px-3 text-right">累计盈亏(元)</th>
-                  <th className="py-1.5 px-3 text-center">操作</th>
                 </tr>
               </thead>
               {tradesDisplay.length === 0 ? (
                 <tbody>
                   <tr>
-                    <td colSpan={12} className="py-8 text-center text-slate-400 font-sans">
+                    <td colSpan={11} className="py-8 text-center text-slate-400 font-sans">
                       暂无交易明细
                     </td>
                   </tr>
@@ -335,16 +340,16 @@ export const DetailsBottomTabs: React.FC = () => {
 
                   // B/S 信号点：多头 B 开仓 / S 平仓；空头 S 开仓 / B 平仓
                   const entrySignal = isLong
-                    ? { label: 'B 买入开仓', cls: 'bg-red-50 text-red-600 border-red-200' }
-                    : { label: 'S 卖出开仓', cls: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
+                    ? { label: 'B 买入开仓', point: 'B', cls: 'bg-red-50 text-red-600 border-red-200' }
+                    : { label: 'S 卖出开仓', point: 'S', cls: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
                   const exitSignal = isLong
-                    ? { label: 'S 卖出平仓', cls: 'bg-emerald-50 text-emerald-600 border-emerald-200' }
-                    : { label: 'B 买入平仓', cls: 'bg-red-50 text-red-600 border-red-200' };
+                    ? { label: 'S 卖出平仓', point: 'S', cls: 'bg-emerald-50 text-emerald-600 border-emerald-200' }
+                    : { label: 'B 买入平仓', point: 'B', cls: 'bg-red-50 text-red-600 border-red-200' };
 
                   return (
                     <tbody key={t.id} className="group">
                       {/* 平仓行 (Exit / S点) */}
-                      <tr className="group-hover:bg-slate-50/80 transition-colors">
+                      <tr className="group/row group-hover:bg-slate-50/80 transition-colors">
                         <td rowSpan={2} className="py-2 px-3 align-middle border-b border-slate-200">
                           <span className="font-bold text-slate-900">#{seq}</span>
                         </td>
@@ -361,9 +366,18 @@ export const DetailsBottomTabs: React.FC = () => {
                           </span>
                         </td>
                         <td className="py-1.5 px-3">
-                          <span className={`px-1.5 py-0.5 rounded border text-[10px] font-sans font-medium ${exitSignal.cls}`}>
-                            {exitSignal.label}
-                          </span>
+                          <div className="flex items-center space-x-1">
+                            <button
+                              onClick={() => handleLocateSignal(closeDate)}
+                              className="text-[#2F6FED] hover:text-[#2557CA] opacity-0 group-hover/row:opacity-100 transition-opacity cursor-pointer shrink-0"
+                              title={`锚定主图 ${closeDate} 的 ${exitSignal.point} 信号点`}
+                            >
+                              <Crosshair className="w-3 h-3" />
+                            </button>
+                            <span className={`px-1.5 py-0.5 rounded border text-[10px] font-sans font-medium ${exitSignal.cls}`}>
+                              {exitSignal.label}
+                            </span>
+                          </div>
                         </td>
                         <td className="py-1.5 px-3 text-slate-600">{closeDate}</td>
                         <td className="py-1.5 px-3 text-right">{closePrice.toFixed(1)}</td>
@@ -382,21 +396,22 @@ export const DetailsBottomTabs: React.FC = () => {
                         <td rowSpan={2} className={`py-2 px-3 text-right align-middle border-b border-slate-200 font-semibold ${isCumWin ? 'text-red-600' : 'text-emerald-600'}`}>
                           {isCumWin ? `+${cumPnl.toLocaleString()}` : cumPnl.toLocaleString()}
                         </td>
-                        <td rowSpan={2} className="py-2 px-3 text-center align-middle border-b border-slate-200 font-sans">
-                          <button
-                            onClick={() => store.setFocusedTradeDate(openDate)}
-                            className="text-[#2F6FED] hover:underline text-[11px] font-medium cursor-pointer"
-                          >
-                            图表定位
-                          </button>
-                        </td>
                       </tr>
                       {/* 开仓行 (Entry / B点) */}
-                      <tr className="group-hover:bg-slate-50/80 transition-colors">
+                      <tr className="group/row group-hover:bg-slate-50/80 transition-colors">
                         <td className="py-1.5 px-3 border-b border-slate-200">
-                          <span className={`px-1.5 py-0.5 rounded border text-[10px] font-sans font-medium ${entrySignal.cls}`}>
-                            {entrySignal.label}
-                          </span>
+                          <div className="flex items-center space-x-1">
+                            <button
+                              onClick={() => handleLocateSignal(openDate)}
+                              className="text-[#2F6FED] hover:text-[#2557CA] opacity-0 group-hover/row:opacity-100 transition-opacity cursor-pointer shrink-0"
+                              title={`锚定主图 ${openDate} 的 ${entrySignal.point} 信号点`}
+                            >
+                              <Crosshair className="w-3 h-3" />
+                            </button>
+                            <span className={`px-1.5 py-0.5 rounded border text-[10px] font-sans font-medium ${entrySignal.cls}`}>
+                              {entrySignal.label}
+                            </span>
+                          </div>
                         </td>
                         <td className="py-1.5 px-3 border-b border-slate-200 text-slate-600">{openDate}</td>
                         <td className="py-1.5 px-3 border-b border-slate-200 text-right">{openPrice.toFixed(1)}</td>
